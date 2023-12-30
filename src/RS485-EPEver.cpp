@@ -22,6 +22,10 @@
  *    Midday Load OFF - every day - 
  *    
  *    Most of  my work so far has consisted of deleting code.... 
+ *    RTC memory data saving 
+ *    https://github.com/SensorsIot/ESP8266-RTC-Memory/blob/master/RTCmemTest/RTCmemTest.ino
+ *    https://arduino.stackexchange.com/questions/25945/how-to-read-and-write-eeprom-in-esp8266
+ *    https://arduinodiy.wordpress.com/2023/12/04/very-deepsleep-and-fram/
  *   
  *    
  *    Version 0.00
@@ -439,14 +443,12 @@ void setup(void) {
   digitalWrite(LED, LOW);
   //WiFi.disconnect( true ); //ensures the ESP enters deep sleep correctly
   delay( 1 ); //ensures the ESP enters deep sleep correctly
-  Serial1.println("\r Going into deep sleep mode for 20 seconds");
+  Serial1.println("\r Going into deep sleep mode for 10 seconds");
 
   //ESP.deepSleep(5e6, WAKE_RF_DISABLED );// use WAKE_RF_DISABLED to keep WiFi off when waking up
   // Deep sleep mode for 5 seconds, the ESP8266 wakes up by itself when GPIO 16 (D0 in NodeMCU board) is connected to the RESET pin
-  ESP.deepSleep(20e6, WAKE_RF_DISABLED );
+  ESP.deepSleep(10e6, WAKE_RF_DISABLED );
   delay(100); //added after deepSleep to ensure the ESP goes to sleep properly
-
-
 
 }
 
