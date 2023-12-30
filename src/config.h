@@ -4,7 +4,34 @@
 #define MAX485_RE         D1  // recv enable
 #define BellSwitchTrue    D6  // input -  
 #define ESP_busy          D5  // output - Flags WiFi GUI is running
-#define LED 15
+#define LED 15                // just for testing 
+
+//FRAM logging variables  - persistent over sleep reset 
+uint8_t Hour_Now;             // ref. for rtc hour rollover
+uint8_t Wake_Cnt;             // timed 40 second wakes, approx 90 samples/hr
+uint16_t Sol_Watts;           // 100W peak x 90 = 9000
+uint16_t Load_Watts;          // 50W peak x 90 = 4500
+
+//FRAM Variables Hourly in some array RRD to overwrite oldest record
+uint8_t day_hour;           // day, hour as packed BCD
+uint8_t Solar_Wh;           // total solar
+uint8_t Load_Wh;            // total load (derive battery)
+uint8_t Bat_Vmin;
+uint8_t Bat_Tmin;           // minimum battery temp
+uint8_t Flags;              // (Battery full(float volts and no curent)), (Temp threshold)...
+//  flag latest record as day won't work at end of month
+//  6 bytes/hr 144/day 1008 week
+//  even better if you don't record night-time no load
+
+//FRAM Variables daily in some array RRD to overwrite oldest record
+uint8_t month_day;           // as packed BCD
+uint8_t flgs_year;           //four flags : yy as packed BCD
+uint16_t Solar_Wh;           // total solar max 1024 Wh 10 bits
+uint8_t Load_Wh;             // total load max 254 Wh (derive battery)
+uint8_t Bat_Vmin;
+uint8_t Bat_Tmin;           // minimum battery temp
+uint8_t Bat_Tmax;           //
+// 8 bytes day , 56 week, 20,440 year.. ~2/3 of 32K FRAM
 
 // ModBus Register Locations
 #define LIVE_DATA       0x3100     // start of live-data 
@@ -35,7 +62,6 @@
 
 #define BATTERY_CURRENT_L   0x331B  // Battery current L
 #define BATTERY_CURRENT_H   0x331C  // Battery current H
-
 
 #define STATISTICS      0x3300 // start of statistical data
 #define STATISTICS_CNT  22     // 22 regs

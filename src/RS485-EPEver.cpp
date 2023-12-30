@@ -22,9 +22,8 @@
  *    Midday Load OFF - every day - 
  *    
  *    Most of  my work so far has consisted of deleting code.... 
- *    RTC memory data saving 
- *    https://github.com/SensorsIot/ESP8266-RTC-Memory/blob/master/RTCmemTest/RTCmemTest.ino
- *    https://arduino.stackexchange.com/questions/25945/how-to-read-and-write-eeprom-in-esp8266
+ *    
+ *    https://github.com/RobTillaart/FRAM_I2C
  *    https://arduinodiy.wordpress.com/2023/12/04/very-deepsleep-and-fram/
  *   
  *    
@@ -182,25 +181,7 @@ void ReadValues() {
 #endif
   } 
 
-  /* 
-  Mis-Read and  don't need!
-  // BATTERY_TYPE
-  niceDelay(50);
-  node.clearResponseBuffer();
-  result = node.readInputRegisters(BATTERY_TYPE, 1);
-  if (result == node.ku8MBSuccess)  {
-    
-    BatteryType = node.getResponseBuffer(0);
-
-  } else {
-#ifdef DEBUG
-    Serial1.print(F("Miss read BATTERY_TYPE, ret val:"));
-    Serial1.println(result, HEX);
-    Serial1.flush();
-#endif
-  }
-  
-
+ 
   // EQ_CHARGE_VOLT
   niceDelay(50);
   node.clearResponseBuffer();
@@ -249,7 +230,7 @@ void ReadValues() {
     Serial1.flush();
 #endif
   } 
-  */
+
   // Battery SOC
   niceDelay(50);
   node.clearResponseBuffer();
@@ -283,7 +264,6 @@ void ReadValues() {
 #endif
   }
  
-  //if (!switch_load) {
     // State of the Load Switch
     niceDelay(50);
     node.clearResponseBuffer();
@@ -299,24 +279,7 @@ void ReadValues() {
       Serial1.flush();
  #endif
     }
-  //}
-  /* Mis-Read and don't Need
-  // Read Model
-  niceDelay(50);
-  node.clearResponseBuffer();
-  result = node.readInputRegisters(CCMODEL, 1);
-  if (result == node.ku8MBSuccess)  {
-    
-    CCModel = node.getResponseBuffer(0);
-    
-  } else {
-#ifdef DEBUG
-    Serial1.print(F("Miss read Model, ret val:"));
-    Serial1.println(result, HEX);
-    Serial1.flush();
-#endif
-  }
-  */
+
   // Read Status Flags
   niceDelay(50);
   node.clearResponseBuffer();
@@ -389,10 +352,6 @@ void debug_output(){
 
 //---------------------------------------------------------------------------------------
 void setup(void) {
-  niceDelay(50);
-  // modbus callbacks
-  node.preTransmission(preTransmission);
-  node.postTransmission(postTransmission);
 
   Serial1.begin(115200);
   Serial1.setTimeout(2000);
@@ -402,12 +361,13 @@ void setup(void) {
   Serial.begin(115200);
   Serial.setTimeout(2000);
   while(!Serial) { } // Wait for serial to initialize.
+
+    //FRAM i2c setup code goes here?? 
  
   // init modbus in receive mode
   pinMode(MAX485_RE, OUTPUT);
   pinMode(MAX485_DE, OUTPUT);
-  niceDelay(50);
-  postTransmission();
+   postTransmission();
 
   // EPEver Device ID and Baud Rate
   node.begin(1, Serial);
@@ -418,15 +378,24 @@ void setup(void) {
   buffer.reserve(64);
   // Read Values from Charge Controller
   ReadValues();
-  niceDelay(50);
   debug_output();
-  Serial1.flush();
-  //#ifdef DEBUG
-    
-  //#endif
+  Serial1.flush(); // need before sleep
+
+  // increment wakeup counter 
+  // Now save Panel, battery and load Watts to FRAM
+  // Time check for mins rollover -
+  if ((rtc.r.M == 01)&(Hour_Now != rtc.r.h)){
+      Hour_Now = rtc.r.h; // block second call in same 01 min
+      Sol_Watts = Sol_Watts/Wake_Cnt;    // uint16t
+      Load_Watts = Load_Watts/Wake_Cnt;  // uint16t
+      //uint8_t new_value = (uint8_t) ((*data16) >> 8 );  
+
+  }
+  // check if rtc.r.h has changed (deals with 23:00-00:00 rollover)
+  // if true store new hour. in FRAM 
 
   // code to detect load user change of state
-  // Flag to RTC RAM and reset -next boot in loop with wi-fi and GUI
+  // Flag to FRAM and reset -next boot in loop with wi-fi and GUI
   // 40 seconds delay...
 
 
@@ -449,6 +418,10 @@ void setup(void) {
   // Deep sleep mode for 5 seconds, the ESP8266 wakes up by itself when GPIO 16 (D0 in NodeMCU board) is connected to the RESET pin
   ESP.deepSleep(10e6, WAKE_RF_DISABLED );
   delay(100); //added after deepSleep to ensure the ESP goes to sleep properly
+  
+  // modbus callbacks - are these in the right place? 
+  node.preTransmission(preTransmission);
+  node.postTransmission(postTransmission);
 
 }
 
