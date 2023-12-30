@@ -27,7 +27,7 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 //uncomment for DEBUG
 //#define DEBUG_SEND_MESSAGE
 //#define DEBUG_RECEIVED_MESSAGE
-//#define DebugSerial  Serial
+//#define DebugSerial  Serial1
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
 #include "ModbusMaster.h"

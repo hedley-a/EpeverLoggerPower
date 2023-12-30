@@ -2,6 +2,9 @@
 // Pins
 #define MAX485_DE         D2  // data or
 #define MAX485_RE         D1  // recv enable
+#define BellSwitchTrue    D6  // input -  
+#define ESP_busy          D5  // output - Flags WiFi GUI is running
+#define LED 15
 
 // ModBus Register Locations
 #define LIVE_DATA       0x3100     // start of live-data 
@@ -69,11 +72,15 @@
 #define STATUS_FLAGS      0x3200
 #define STATUS_BATTERY    0x00  // Battery status register
 #define STATUS_CHARGER    0x01  // Charging equipment status register
+// Miss read BATTERY_TYPE, ret val:2 
 #define BATTERY_TYPE      0x9000  // Battery Type 0001H- Sealed , 0002H- GEL, 0003H- Flooded, 0000H- User defined
+//Miss read BATTERY_CAPACITY, ret val:2
 #define BATTERY_CAPACITY  0x9001  // Rated capacity of the battery in Ah
 #define HIGH_VOLTAGE_DISCONNECT 0x9003  //
-#define CHARGING_LIMIT_VOLT     0x9004  //
-#define EQ_CHARGE_VOLT          0x9006
+//Miss read CHARGING_LIMIT_VOLT, ret val:2
+#define CHARGING_LIMIT_VOLT  0x9004  //
+//Miss read EQ_CHARGE_VOLT, ret val:2
+#define EQ_CHARGE_VOLT     0x9006 //
 
 uint16_t ErrorCounter=0;
 uint16_t savestatustxt;
@@ -135,7 +142,7 @@ uint16_t GeneratedEnergyToday;
 uint16_t GeneratedEnergyMonth;
 uint16_t GeneratedEnergyYear;
 uint16_t TotalGeneratedEnergy;
-//uint16_t Co2Reduction;
+uint16_t Co2Reduction;
 uint16_t NetBatteryCurrent;
 uint16_t BatteryTemp;
 uint16_t AmbientTemp;
