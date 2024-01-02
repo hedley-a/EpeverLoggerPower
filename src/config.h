@@ -1,9 +1,11 @@
 
 // Pins
-#define MAX485_DE         D2  // data or
 #define MAX485_RE         D1  // recv enable
-#define BellSwitchTrue    D6  // input -  
-#define ESP_busy          D5  // output - Flags WiFi GUI is running
+#define MAX485_DE         D2  // data or//
+#define Sealed            D5
+#define SDA               D6
+//#define BellSwitchTrue    D6  // input -  
+//#define ESP_busy          D5  // output - Flags WiFi GUI is running
 #define LED 15                // just for testing 
 
 //FRAM logging variables  - persistent over sleep reset 
@@ -13,8 +15,7 @@ uint16_t Sol_Watts;           // 100W peak x 90 = 9000
 uint16_t Load_Watts;          // 50W peak x 90 = 4500
 
 //FRAM Variables Hourly in some array RRD to overwrite oldest record
-uint8_t day_hour;           // day, hour as packed BCD
-uint8_t Solar_Wh;           // total solar
+uint8_t Sola_Wh;           // total solar
 uint8_t Load_Wh;            // total load (derive battery)
 uint8_t Bat_Vmin;
 uint8_t Bat_Tmin;           // minimum battery temp
@@ -24,13 +25,13 @@ uint8_t Flags;              // (Battery full(float volts and no curent)), (Temp 
 //  even better if you don't record night-time no load
 
 //FRAM Variables daily in some array RRD to overwrite oldest record
-uint8_t month_day;           // as packed BCD
-uint8_t flgs_year;           //four flags : yy as packed BCD
-uint16_t Solar_Wh;           // total solar max 1024 Wh 10 bits
-uint8_t Load_Wh;             // total load max 254 Wh (derive battery)
-uint8_t Bat_Vmin;
-uint8_t Bat_Tmin;           // minimum battery temp
-uint8_t Bat_Tmax;           //
+//uint8_t month_day;           // as packed BCD
+//uint8_t flgs_year;           //four flags : yy as packed BCD
+//uint16_t SolaD_Wh;           // total solar max 1024 Wh 10 bits
+//uint8_t Load_Wh;             // total load max 254 Wh (derive battery)
+//uint8_t Bat_Vmin;
+//uint8_t Bat_Tmin;           // minimum battery temp
+//uint8_t Bat_Tmax;           //
 // 8 bytes day , 56 week, 20,440 year.. ~2/3 of 32K FRAM
 
 // ModBus Register Locations

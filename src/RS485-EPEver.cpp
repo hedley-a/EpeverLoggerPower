@@ -22,20 +22,24 @@
  *    Midday Load OFF - every day - 
  *    
  *    Most of  my work so far has consisted of deleting code.... 
- *    
+ *    https://github.com/lnlp/FramI2C
  *    https://github.com/RobTillaart/FRAM_I2C
  *    https://arduinodiy.wordpress.com/2023/12/04/very-deepsleep-and-fram/
+ *    https://github.com/sosandroid/FRAM_MB85RC_I2C
+ *
+ * 
  *   
- *    
+ *    01/01/24  - changed pinouts for DE RE
  *    Version 0.00
-
 */
 
 #include <Arduino.h>
 //#include <ESPUI.h>
 #include <ModbusMaster.h>
 #include <string.h>
-
+#include <Wire.h>
+#include <math.h>
+#include <FRAM.h>
 
 ////////////////
 #define DEBUG
@@ -181,7 +185,7 @@ void ReadValues() {
 #endif
   } 
 
- 
+/* 
   // EQ_CHARGE_VOLT
   niceDelay(50);
   node.clearResponseBuffer();
@@ -230,7 +234,7 @@ void ReadValues() {
     Serial1.flush();
 #endif
   } 
-
+*/
   // Battery SOC
   niceDelay(50);
   node.clearResponseBuffer();
@@ -246,7 +250,7 @@ void ReadValues() {
     Serial1.flush();
 #endif
   }
-
+/*
   // Battery Net Current = Icharge - Iload
   niceDelay(50);
   node.clearResponseBuffer();
@@ -263,22 +267,22 @@ void ReadValues() {
     Serial1.flush();
 #endif
   }
- 
-    // State of the Load Switch
-    niceDelay(50);
-    node.clearResponseBuffer();
-    result = node.readCoils(  LOAD_STATE, 1 );
-    if (result == node.ku8MBSuccess)  {
+*/ 
+  // State of the Load Switch
+  niceDelay(50);
+  node.clearResponseBuffer();
+  result = node.readCoils(  LOAD_STATE, 1 );
+  if (result == node.ku8MBSuccess)  {
       
-      loadState = node.getResponseBuffer(0);
+    loadState = node.getResponseBuffer(0);
           
-    } else  {
+  } else  {
 #ifdef DEBUG
-      Serial1.print(F("Miss read loadState, ret val:"));
-      Serial1.println(result, HEX);
-      Serial1.flush();
- #endif
-    }
+    Serial1.print(F("Miss read loadState, ret val:"));
+    Serial1.println(result, HEX);
+    Serial1.flush();
+#endif
+  }
 
   // Read Status Flags
   niceDelay(50);
@@ -353,7 +357,7 @@ void debug_output(){
 //---------------------------------------------------------------------------------------
 void setup(void) {
 
-  Serial1.begin(115200);
+  Serial1.begin(19200);     // reduced from 115200 - timing issues?
   Serial1.setTimeout(2000);
   while(!Serial1) { } // Wait for serial to initialize.
   Serial1.printf("Serial Init." );
@@ -362,12 +366,18 @@ void setup(void) {
   Serial.setTimeout(2000);
   while(!Serial) { } // Wait for serial to initialize.
 
-    //FRAM i2c setup code goes here?? 
- 
+  //FRAM i2c setup code goes here??
+  {
+     Wire.begin(12,13); //Wire.begin(4, 5); //SDA, SCL
+    fram.begin(64)
+  }
   // init modbus in receive mode
   pinMode(MAX485_RE, OUTPUT);
   pinMode(MAX485_DE, OUTPUT);
-   postTransmission();
+
+  //modbus callbacks
+  node.postTransmission(postTransmission);
+  node.preTransmission(preTransmission);
 
   // EPEver Device ID and Baud Rate
   node.begin(1, Serial);
@@ -380,10 +390,10 @@ void setup(void) {
   ReadValues();
   debug_output();
   Serial1.flush(); // need before sleep
-
+/*
   // increment wakeup counter 
   // Now save Panel, battery and load Watts to FRAM
-  // Time check for mins rollover -
+  //Time check for mins rollover -
   if ((rtc.r.M == 01)&(Hour_Now != rtc.r.h)){
       Hour_Now = rtc.r.h; // block second call in same 01 min
       Sol_Watts = Sol_Watts/Wake_Cnt;    // uint16t
@@ -410,6 +420,7 @@ void setup(void) {
 
   // Turn the LED off by making the voltage LOW
   digitalWrite(LED, LOW);
+*/
   //WiFi.disconnect( true ); //ensures the ESP enters deep sleep correctly
   delay( 1 ); //ensures the ESP enters deep sleep correctly
   Serial1.println("\r Going into deep sleep mode for 10 seconds");
@@ -419,9 +430,7 @@ void setup(void) {
   ESP.deepSleep(10e6, WAKE_RF_DISABLED );
   delay(100); //added after deepSleep to ensure the ESP goes to sleep properly
   
-  // modbus callbacks - are these in the right place? 
-  node.preTransmission(preTransmission);
-  node.postTransmission(postTransmission);
+  
 
 }
 
